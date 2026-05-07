@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Optional: Smooth out the scrolling and base styles */
+html, body, #root {
+  height: 100%;
+  background-color: #f9fafb; /* gray-50 */
+}
