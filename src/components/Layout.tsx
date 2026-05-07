@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 
 interface LayoutProps {
   sidebar: ReactNode;
@@ -7,12 +7,9 @@ interface LayoutProps {
 
 export function Layout({ sidebar, children }: LayoutProps) {
   return (
-    <div className="flex h-screen w-full bg-gray-50 font-sans overflow-hidden">
-      {/* Sidebar Area */}
+    <div className="flex h-screen w-full bg-gray-50 dark:bg-gray-950 font-sans overflow-hidden transition-colors duration-200">
       {sidebar}
-      
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col h-full bg-white relative">
+      <main className="flex-1 flex flex-col h-full bg-white dark:bg-gray-900 relative transition-colors duration-200">
         {children}
       </main>
     </div>

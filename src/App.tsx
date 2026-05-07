@@ -10,7 +10,20 @@ import { FileText } from 'lucide-react';
 function App() {
   const [notes, setNotes] = useLocalStorage<Note[]>('personal-notepads', []);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  
+  // Dark mode state
+  const [isDarkMode, setIsDarkMode] = useLocalStorage<boolean>('dark-mode', false);
 
+  // Apply dark mode class to HTML root
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  // Auto-select the first note if none is selected
   useEffect(() => {
     if (!activeNoteId && notes.length > 0) {
       setActiveNoteId(notes[0].id);
@@ -35,11 +48,12 @@ function App() {
     setNotes(updatedNotes);
   };
 
-  const handleDeleteNote = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const filteredNotes = notes.filter((note) => note.id !== id);
+  const handleBulkDelete = (idsToDelete: string[]) => {
+    const filteredNotes = notes.filter((note) => !idsToDelete.includes(note.id));
     setNotes(filteredNotes);
-    if (activeNoteId === id) {
+    
+    // If the active note was deleted, reset the active view
+    if (activeNoteId && idsToDelete.includes(activeNoteId)) {
       setActiveNoteId(filteredNotes.length > 0 ? filteredNotes[0].id : null);
     }
   };
@@ -52,17 +66,19 @@ function App() {
         <Sidebar
           notes={notes}
           activeNoteId={activeNoteId}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
           onAddNote={handleAddNote}
           onSelectNote={setActiveNoteId}
-          onDeleteNote={handleDeleteNote}
+          onBulkDelete={handleBulkDelete}
         />
       }
     >
       {activeNote ? (
         <Editor note={activeNote} onUpdateNote={handleUpdateNote} />
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center text-gray-400 h-full bg-gray-50/50">
-          <FileText size={64} className="mb-4 text-gray-300" />
+        <div className="flex-1 flex flex-col items-center justify-center text-gray-400 dark:text-gray-600 h-full bg-gray-50/50 dark:bg-gray-900/50">
+          <FileText size={64} className="mb-4 text-gray-300 dark:text-gray-700" />
           <p className="text-xl font-medium">Select a note or create a new one</p>
         </div>
       )}
