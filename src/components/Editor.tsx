@@ -1,4 +1,5 @@
-import { Note } from '../types';
+import React from 'react';
+import type { Note } from '../types';
 
 interface EditorProps {
   note: Note;

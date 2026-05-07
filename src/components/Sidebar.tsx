@@ -1,5 +1,6 @@
-import { Plus, Trash2, FileText } from 'lucide-react';
-import { Note } from '../types';
+import React from 'react';
+import { Plus, Trash2 } from 'lucide-react'; // Removed unused FileText
+import type { Note } from '../types';
 
 interface SidebarProps {
   notes: Note[];
@@ -10,7 +11,6 @@ interface SidebarProps {
 }
 
 export function Sidebar({ notes, activeNoteId, onAddNote, onSelectNote, onDeleteNote }: SidebarProps) {
-  // Sort notes by newest first
   const sortedNotes = [...notes].sort((a, b) => b.lastModified - a.lastModified);
 
   return (

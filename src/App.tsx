@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { Note } from './types';
+import type { Note } from './types';
 import { Sidebar } from './components/Sidebar';
 import { Editor } from './components/Editor';
 import { Layout } from './components/Layout';
@@ -11,7 +11,6 @@ function App() {
   const [notes, setNotes] = useLocalStorage<Note[]>('personal-notepads', []);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
 
-  // Auto-select the first note if none is selected
   useEffect(() => {
     if (!activeNoteId && notes.length > 0) {
       setActiveNoteId(notes[0].id);
