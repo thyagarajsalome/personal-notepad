@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Plus, Trash2, Sun, Moon, CheckSquare, Square, X, ChevronDown, ChevronRight, Search } from 'lucide-react';
 import type { Note, NoteCategory } from '../types';
-
 interface SidebarProps {
   notes: Note[];
   activeNoteId: string | null;

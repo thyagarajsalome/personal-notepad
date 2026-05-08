@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CheckCircle2, Eye, EyeOff, Copy, CopyCheck } from 'lucide-react';
 import type { Note, NoteCategory } from '../types';
 
