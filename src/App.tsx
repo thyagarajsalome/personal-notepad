@@ -11,10 +11,8 @@ function App() {
   const [notes, setNotes] = useLocalStorage<Note[]>('personal-notepads', []);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   
-  // Dark mode state
   const [isDarkMode, setIsDarkMode] = useLocalStorage<boolean>('dark-mode', false);
 
-  // Apply dark mode class to HTML root
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -23,19 +21,18 @@ function App() {
     }
   }, [isDarkMode]);
 
-  // Auto-select the first note if none is selected
   useEffect(() => {
     if (!activeNoteId && notes.length > 0) {
       setActiveNoteId(notes[0].id);
     }
   }, [notes, activeNoteId]);
 
-  // Updated to accept category from the Sidebar
   const handleAddNote = (category: NoteCategory = 'General') => {
     const newNote: Note = {
       id: uuidv4(),
       title: '',
-      content: '',
+      // Pre-fill JSON structure if it's a password
+      content: category === 'Password Manager' ? JSON.stringify({ username: '', password: '', notes: '' }) : '',
       lastModified: Date.now(),
       category: category, 
     };
@@ -54,7 +51,6 @@ function App() {
     const filteredNotes = notes.filter((note) => !idsToDelete.includes(note.id));
     setNotes(filteredNotes);
     
-    // If the active note was deleted, reset the active view
     if (activeNoteId && idsToDelete.includes(activeNoteId)) {
       setActiveNoteId(filteredNotes.length > 0 ? filteredNotes[0].id : null);
     }
