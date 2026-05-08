@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import type { Note, NoteCategory } from '../types';
 
 interface EditorProps {
@@ -7,11 +7,11 @@ interface EditorProps {
   onUpdateNote: (updatedNote: Note) => void;
 }
 
-// Ensure this matches the categories defined in your types file
-const CATEGORIES: NoteCategory[] = ['General', 'AI Prompts', 'Contact Details', 'Code Snippets', 'Project Ideas'];
+const CATEGORIES: NoteCategory[] = ['General', 'AI Prompts', 'Contact Details', 'Code Snippets', 'Project Ideas', 'Password Manager'];
 
 export function Editor({ note, onUpdateNote }: EditorProps) {
   const [saveStatus, setSaveStatus] = useState('Saved');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Show a brief "Saving..." status whenever the note changes
   useEffect(() => {
@@ -19,6 +19,11 @@ export function Editor({ note, onUpdateNote }: EditorProps) {
     const timer = setTimeout(() => setSaveStatus('Saved'), 500);
     return () => clearTimeout(timer);
   }, [note.content, note.title, note.category]);
+
+  // Reset password visibility when switching notes
+  useEffect(() => {
+    setShowPassword(false);
+  }, [note.id]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onUpdateNote({ ...note, title: e.target.value, lastModified: Date.now() });
@@ -32,6 +37,9 @@ export function Editor({ note, onUpdateNote }: EditorProps) {
     onUpdateNote({ ...note, category: e.target.value as NoteCategory, lastModified: Date.now() });
   };
 
+  const isCode = note.category === 'Code Snippets';
+  const isPassword = note.category === 'Password Manager';
+
   return (
     <div className="flex-1 flex flex-col h-full bg-white dark:bg-gray-900 transition-colors duration-200">
       {/* Editor Header / Save Status & Category Selector */}
@@ -42,7 +50,6 @@ export function Editor({ note, onUpdateNote }: EditorProps) {
             {saveStatus}
           </span>
           
-          {/* Vertical divider */}
           <div className="h-4 w-px bg-gray-200 dark:bg-gray-700"></div>
           
           {/* Category Dropdown */}
@@ -57,6 +64,19 @@ export function Editor({ note, onUpdateNote }: EditorProps) {
               </option>
             ))}
           </select>
+
+          {/* Password Reveal Toggle */}
+          {isPassword && (
+            <>
+              <div className="h-4 w-px bg-gray-200 dark:bg-gray-700"></div>
+              <button 
+                onClick={() => setShowPassword(!showPassword)}
+                className="flex items-center gap-1 text-blue-500 hover:text-blue-600 transition-colors"
+              >
+                {showPassword ? <><EyeOff size={14} /> Hide Content</> : <><Eye size={14} /> Reveal Content</>}
+              </button>
+            </>
+          )}
         </div>
 
         <span>Last edited: {new Date(note.lastModified).toLocaleTimeString()}</span>
@@ -74,12 +94,15 @@ export function Editor({ note, onUpdateNote }: EditorProps) {
       </div>
 
       {/* Content Textarea */}
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-6 flex flex-col">
         <textarea
           value={note.content}
           onChange={handleContentChange}
-          placeholder="Start typing your thoughts here..."
-          className="w-full h-full text-gray-700 dark:text-gray-300 text-lg resize-none border-none outline-none focus:ring-0 bg-transparent leading-relaxed transition-colors"
+          placeholder={isCode ? "// Paste your code here..." : "Start typing your thoughts here..."}
+          className={`w-full h-full resize-none border-none outline-none focus:ring-0 bg-transparent transition-all duration-300
+            ${isCode ? 'font-mono text-sm bg-gray-50 dark:bg-gray-950 p-4 rounded-lg border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-green-400' : 'text-lg text-gray-700 dark:text-gray-300 leading-relaxed'}
+            ${isPassword && !showPassword ? 'blur-md select-none opacity-50' : 'blur-0 opacity-100'}
+          `}
         />
       </div>
     </div>
