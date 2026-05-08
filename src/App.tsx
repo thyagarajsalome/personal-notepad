@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import type { Note, NoteCategory } from './types';
+import { useNoteRepository } from './hooks/useNoteRepository';
+import type { NoteCategory } from './types';
 import { Sidebar } from './components/Sidebar';
 import { Editor } from './components/Editor';
 import { Layout } from './components/Layout';
 import { FileText } from 'lucide-react';
 
 function App() {
-  const [notes, setNotes] = useLocalStorage<Note[]>('personal-notepads', []);
-  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  // Use the Repository Pattern to handle data logic
+  const { notes, addNote, updateNote, deleteNotes } = useNoteRepository();
   
+  // UI State
+  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useLocalStorage<boolean>('dark-mode', false);
 
+  // Apply dark mode class to HTML root
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -21,38 +24,24 @@ function App() {
     }
   }, [isDarkMode]);
 
+  // Auto-select the first note if none is selected
   useEffect(() => {
     if (!activeNoteId && notes.length > 0) {
       setActiveNoteId(notes[0].id);
     }
   }, [notes, activeNoteId]);
 
-  const handleAddNote = (category: NoteCategory = 'General') => {
-    const newNote: Note = {
-      id: uuidv4(),
-      title: '',
-      // Pre-fill JSON structure if it's a password
-      content: category === 'Password Manager' ? JSON.stringify({ username: '', password: '', notes: '' }) : '',
-      lastModified: Date.now(),
-      category: category, 
-    };
-    setNotes([newNote, ...notes]);
+  const handleAddNote = (category?: NoteCategory) => {
+    const newNote = addNote(category);
     setActiveNoteId(newNote.id);
   };
 
-  const handleUpdateNote = (updatedNote: Note) => {
-    const updatedNotes = notes.map((note) =>
-      note.id === updatedNote.id ? updatedNote : note
-    );
-    setNotes(updatedNotes);
-  };
-
   const handleBulkDelete = (idsToDelete: string[]) => {
-    const filteredNotes = notes.filter((note) => !idsToDelete.includes(note.id));
-    setNotes(filteredNotes);
+    deleteNotes(idsToDelete);
     
+    // If the currently active note was deleted, reset the active ID
     if (activeNoteId && idsToDelete.includes(activeNoteId)) {
-      setActiveNoteId(filteredNotes.length > 0 ? filteredNotes[0].id : null);
+      setActiveNoteId(null); 
     }
   };
 
@@ -73,7 +62,7 @@ function App() {
       }
     >
       {activeNote ? (
-        <Editor note={activeNote} onUpdateNote={handleUpdateNote} />
+        <Editor note={activeNote} onUpdateNote={updateNote} />
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center text-gray-400 dark:text-gray-600 h-full bg-gray-50/50 dark:bg-gray-900/50">
           <FileText size={64} className="mb-4 text-gray-300 dark:text-gray-700" />
