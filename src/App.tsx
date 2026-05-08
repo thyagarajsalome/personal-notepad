@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useNoteRepository } from './hooks/useNoteRepository';
 import type { NoteCategory } from './types';
