@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
-import type { Note } from '../types';
+import type { Note, NoteCategory } from '../types';
 
 interface EditorProps {
   note: Note;
   onUpdateNote: (updatedNote: Note) => void;
 }
+
+// Ensure this matches the categories defined in your types file
+const CATEGORIES: NoteCategory[] = ['General', 'AI Prompts', 'Contact Details', 'Code Snippets', 'Project Ideas'];
 
 export function Editor({ note, onUpdateNote }: EditorProps) {
   const [saveStatus, setSaveStatus] = useState('Saved');
@@ -15,7 +18,7 @@ export function Editor({ note, onUpdateNote }: EditorProps) {
     setSaveStatus('Saving...');
     const timer = setTimeout(() => setSaveStatus('Saved'), 500);
     return () => clearTimeout(timer);
-  }, [note.content, note.title]);
+  }, [note.content, note.title, note.category]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onUpdateNote({ ...note, title: e.target.value, lastModified: Date.now() });
@@ -25,14 +28,37 @@ export function Editor({ note, onUpdateNote }: EditorProps) {
     onUpdateNote({ ...note, content: e.target.value, lastModified: Date.now() });
   };
 
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onUpdateNote({ ...note, category: e.target.value as NoteCategory, lastModified: Date.now() });
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full bg-white dark:bg-gray-900 transition-colors duration-200">
-      {/* Editor Header / Save Status */}
+      {/* Editor Header / Save Status & Category Selector */}
       <div className="px-6 py-3 flex justify-between items-center text-sm text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-800">
-        <span className="flex items-center gap-2">
-          {saveStatus === 'Saved' && <CheckCircle2 size={14} className="text-green-500" />}
-          {saveStatus}
-        </span>
+        <div className="flex items-center gap-4">
+          <span className="flex items-center gap-2">
+            {saveStatus === 'Saved' && <CheckCircle2 size={14} className="text-green-500" />}
+            {saveStatus}
+          </span>
+          
+          {/* Vertical divider */}
+          <div className="h-4 w-px bg-gray-200 dark:bg-gray-700"></div>
+          
+          {/* Category Dropdown */}
+          <select
+            value={note.category || 'General'}
+            onChange={handleCategoryChange}
+            className="bg-transparent border-none outline-none cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:ring-0 p-0 text-sm font-medium"
+          >
+            {CATEGORIES.map((cat) => (
+              <option key={cat} value={cat} className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200">
+                {cat}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <span>Last edited: {new Date(note.lastModified).toLocaleTimeString()}</span>
       </div>
 

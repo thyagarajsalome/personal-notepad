@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import type { Note } from './types';
+import type { Note, NoteCategory } from './types';
 import { Sidebar } from './components/Sidebar';
 import { Editor } from './components/Editor';
 import { Layout } from './components/Layout';
@@ -30,12 +30,14 @@ function App() {
     }
   }, [notes, activeNoteId]);
 
-  const handleAddNote = () => {
+  // Updated to accept category from the Sidebar
+  const handleAddNote = (category: NoteCategory = 'General') => {
     const newNote: Note = {
       id: uuidv4(),
       title: '',
       content: '',
       lastModified: Date.now(),
+      category: category, 
     };
     setNotes([newNote, ...notes]);
     setActiveNoteId(newNote.id);
