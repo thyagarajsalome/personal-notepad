@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Plus, Trash2, Sun, Moon, CheckSquare, Square, X, ChevronDown, ChevronRight, Search } from 'lucide-react';
+import { Plus, Trash2, Sun, Moon, CheckSquare, Square, X, ChevronDown, ChevronRight, Search, Download } from 'lucide-react';
 import type { Note, NoteCategory } from '../types';
+
 interface SidebarProps {
   notes: Note[];
   activeNoteId: string | null;
@@ -49,6 +50,24 @@ export function Sidebar({ notes, activeNoteId, isDarkMode, onToggleDarkMode, onA
       setIsSelectionMode(false);
       setSelectedIds(new Set());
     }
+  };
+
+  // --- NEW FEATURE: Export Backup Data ---
+  const handleExport = () => {
+    // 1. Convert notes array to a beautifully formatted JSON string
+    const dataStr = JSON.stringify(notes, null, 2);
+    // 2. Create a Blob (a file-like object)
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    // 3. Create a temporary hidden link to trigger the download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `personal-notepad-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    // 4. Clean up
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -104,12 +123,10 @@ export function Sidebar({ notes, activeNoteId, isDarkMode, onToggleDarkMode, onA
           const categoryNotes = sortedNotes.filter(n => (n.category || 'General') === category);
           const isExpanded = expandedCategories[category];
 
-          // If we are searching and there are no notes in this category matching the search, hide the category entirely
           if (searchQuery && categoryNotes.length === 0) return null;
 
           return (
             <div key={category} className="mb-2">
-              {/* Category Header */}
               <div 
                 className="flex items-center justify-between px-4 py-2 mt-2 cursor-pointer group"
                 onClick={() => toggleCategory(category)}
@@ -136,7 +153,6 @@ export function Sidebar({ notes, activeNoteId, isDarkMode, onToggleDarkMode, onA
                 )}
               </div>
 
-              {/* Category Notes List */}
               {isExpanded && (
                 <div className="flex flex-col">
                   {categoryNotes.length === 0 && !searchQuery ? (
@@ -186,8 +202,15 @@ export function Sidebar({ notes, activeNoteId, isDarkMode, onToggleDarkMode, onA
         )}
       </div>
 
-      {/* Footer / Theme Toggle */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+      {/* Footer / App Settings */}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800 flex flex-col gap-2">
+        <button 
+          onClick={handleExport}
+          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-md transition-colors"
+        >
+          <Download size={18} />
+          Export Backup
+        </button>
         <button 
           onClick={onToggleDarkMode}
           className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-md transition-colors"
