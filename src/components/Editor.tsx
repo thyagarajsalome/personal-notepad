@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle2, Eye, EyeOff, Copy, CopyCheck } from 'lucide-react';
 import { useNoteStore } from '../stores/useStore';
-import type { Note, NoteCategory } from '../types';
+import type { NoteCategory } from '../types';
 
 const CATEGORIES: NoteCategory[] = ['General', 'AI Prompts', 'Contact Details', 'Code Snippets', 'Project Ideas', 'Password Manager'];
 

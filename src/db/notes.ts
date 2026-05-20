@@ -48,7 +48,13 @@ export async function getAllNotes(): Promise<{
   if (!sql) return [];
   try {
     const rows = await sql`SELECT * FROM notes ORDER BY last_modified DESC`;
-    return rows.map((row: any) => ({
+    return rows.map((row: {
+    id: string;
+    title: string;
+    content: string;
+    last_modified: number;
+    category: string;
+  }) => ({
       id: row.id,
       title: row.title || '',
       content: row.content || '',

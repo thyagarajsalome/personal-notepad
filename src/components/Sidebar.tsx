@@ -24,6 +24,7 @@ export default function Sidebar() {
       document.documentElement.classList.remove('dark');
     }
     loadFromNeon();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: only run on mount
   }, []);
 
   // Filter notes based on search query
