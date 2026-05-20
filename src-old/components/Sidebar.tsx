@@ -1,13 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, Trash2, Sun, Moon, CheckSquare, Square, X, ChevronDown, ChevronRight, Search } from 'lucide-react';
-import { useNoteStore } from '../stores/useStore';
-import type { NoteCategory } from '../types';
-
+import type { Note, NoteCategory } from '../types';
+interface SidebarProps {
+  notes: Note[];
+  activeNoteId: string | null;
+  isDarkMode: boolean;
+  onToggleDarkMode: () => void;
+  onAddNote: (category?: NoteCategory) => void;
+  onSelectNote: (id: string) => void;
+  onBulkDelete: (ids: string[]) => void;
+}
 
 const CATEGORIES: NoteCategory[] = ['General', 'AI Prompts', 'Contact Details', 'Code Snippets', 'Project Ideas', 'Password Manager'];
 
-export default function Sidebar() {
-  const { notes, activeNoteId, isDarkMode, addNote, setActiveNoteId, deleteNotes, toggleDarkMode, loadFromNeon, neonConnected } = useNoteStore();
+export function Sidebar({ notes, activeNoteId, isDarkMode, onToggleDarkMode, onAddNote, onSelectNote, onBulkDelete }: SidebarProps) {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,16 +21,6 @@ export default function Sidebar() {
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(
     CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat]: true }), {})
   );
-
-  // Sync persisted dark mode to DOM on mount, and initialize Neon
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    loadFromNeon();
-  }, []);
 
   // Filter notes based on search query
   const filteredNotes = notes.filter(note => 
@@ -46,17 +42,10 @@ export default function Sidebar() {
     setExpandedCategories(prev => ({ ...prev, [category]: !prev[category] }));
   };
 
-  const handleAddNote = (category: NoteCategory) => {
-    const newNote = addNote(category);
-    if (newNote) {
-      setActiveNoteId(newNote.id);
-    }
-  };
-
   const handleBulkDeleteClick = () => {
     if (selectedIds.size === 0) return;
     if (window.confirm(`Are you sure you want to completely delete ${selectedIds.size} note(s)? This action cannot be undone.`)) {
-      deleteNotes(Array.from(selectedIds));
+      onBulkDelete(Array.from(selectedIds));
       setIsSelectionMode(false);
       setSelectedIds(new Set());
     }
@@ -66,12 +55,7 @@ export default function Sidebar() {
     <div className="w-80 bg-gray-50 dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 h-full flex flex-col transition-colors duration-200">
       {/* Header */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-950 sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">My Notes</h1>
-          {neonConnected && (
-            <span className="w-2 h-2 rounded-full bg-green-500" title="Connected to Neon DB" />
-          )}
-        </div>
+        <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100">My Notes</h1>
         <div className="flex gap-2">
           <button 
             onClick={() => {
@@ -142,7 +126,7 @@ export default function Sidebar() {
                     onClick={(e) => {
                       e.stopPropagation();
                       if (!isExpanded) toggleCategory(category);
-                      handleAddNote(category);
+                      onAddNote(category);
                     }}
                     className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/50 dark:hover:text-blue-400 rounded transition-colors opacity-0 group-hover:opacity-100"
                     title={`Add note to ${category}`}
@@ -167,7 +151,7 @@ export default function Sidebar() {
                       return (
                         <div
                           key={note.id}
-                          onClick={(e) => isSelectionMode ? toggleSelection(note.id, e) : setActiveNoteId(note.id)}
+                          onClick={(e) => isSelectionMode ? toggleSelection(note.id, e) : onSelectNote(note.id)}
                           className={`px-10 py-3 cursor-pointer transition-colors flex items-start gap-3 
                             ${isActive ? 'bg-blue-50/50 dark:bg-blue-900/20 border-l-2 border-l-blue-500' : 'hover:bg-gray-100/50 dark:hover:bg-gray-800/50 border-l-2 border-l-transparent'}
                             ${isSelected ? 'bg-blue-50 dark:bg-blue-900/40' : ''}
@@ -205,7 +189,7 @@ export default function Sidebar() {
       {/* Footer / Theme Toggle */}
       <div className="p-4 border-t border-gray-200 dark:border-gray-800">
         <button 
-          onClick={toggleDarkMode}
+          onClick={onToggleDarkMode}
           className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-md transition-colors"
         >
           {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}

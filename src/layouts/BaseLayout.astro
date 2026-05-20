@@ -1,0 +1,25 @@
+---
+// Base layout — HTML shell with dark mode flash prevention
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>personal-notepad</title>
+    <script is:inline>
+      (function() {
+        try {
+          var stored = JSON.parse(localStorage.getItem('personal-notepad') || '{}');
+          if (stored && stored.state && stored.state.isDarkMode) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch(e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

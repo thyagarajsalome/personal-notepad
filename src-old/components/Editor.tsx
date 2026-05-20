@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle2, Eye, EyeOff, Copy, CopyCheck } from 'lucide-react';
-import { useNoteStore } from '../stores/useStore';
 import type { Note, NoteCategory } from '../types';
 
 const CATEGORIES: NoteCategory[] = ['General', 'AI Prompts', 'Contact Details', 'Code Snippets', 'Project Ideas', 'Password Manager'];
 
-
+interface EditorProps {
+  note: Note;
+  onUpdateNote: (updatedNote: Note) => void;
+}
 
 // ==========================================
 // 1. STRATEGIES (Sub-components)
 // ==========================================
 
-const StandardEditor = ({ note, onUpdateNote }: EditorSubProps) => {
+const StandardEditor = ({ note, onUpdateNote }: EditorProps) => {
   return (
     <textarea
       value={note.content}
@@ -22,7 +24,7 @@ const StandardEditor = ({ note, onUpdateNote }: EditorSubProps) => {
   );
 };
 
-const CodeEditor = ({ note, onUpdateNote }: EditorSubProps) => {
+const CodeEditor = ({ note, onUpdateNote }: EditorProps) => {
   return (
     <textarea
       value={note.content}
@@ -33,7 +35,7 @@ const CodeEditor = ({ note, onUpdateNote }: EditorSubProps) => {
   );
 };
 
-const PasswordEditor = ({ note, onUpdateNote }: EditorSubProps) => {
+const PasswordEditor = ({ note, onUpdateNote }: EditorProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -103,7 +105,7 @@ const PasswordEditor = ({ note, onUpdateNote }: EditorSubProps) => {
 // ==========================================
 // 2. STRATEGY MAPPER
 // ==========================================
-const EditorStrategyMap: Record<string, React.FC<EditorSubProps>> = {
+const EditorStrategyMap: Record<string, React.FC<EditorProps>> = {
   'Code Snippets': CodeEditor,
   'Password Manager': PasswordEditor,
   // Add new categories here mapped to specific components
@@ -112,9 +114,7 @@ const EditorStrategyMap: Record<string, React.FC<EditorSubProps>> = {
 // ==========================================
 // 3. MAIN EDITOR CONTEXT
 // ==========================================
-export default function Editor() {
-  const { notes, activeNoteId, updateNote } = useNoteStore();
-  const activeNote = notes.find(n => n.id === activeNoteId) || null;
+export function Editor({ note, onUpdateNote }: EditorProps) {
   const [saveStatus, setSaveStatus] = useState('Saved');
 
   // Debounced save status indicator
@@ -122,24 +122,18 @@ export default function Editor() {
     setSaveStatus('Saving...');
     const timer = setTimeout(() => setSaveStatus('Saved'), 500);
     return () => clearTimeout(timer);
-  }, [activeNote?.content, activeNote?.title, activeNote?.category]);
-
-  if (!activeNote) return null;
+  }, [note.content, note.title, note.category]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateNote({ ...activeNote, title: e.target.value, lastModified: Date.now() });
+    onUpdateNote({ ...note, title: e.target.value, lastModified: Date.now() });
   };
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    updateNote({ ...activeNote, category: e.target.value as NoteCategory, lastModified: Date.now() });
+    onUpdateNote({ ...note, category: e.target.value as NoteCategory, lastModified: Date.now() });
   };
 
   // Resolve which editor to render based on the map, fallback to Standard
-  const onUpdateNote = (updatedNote) => {
-    updateNote(updatedNote);
-  };
-
-  const ActiveEditorComponent = EditorStrategyMap[activeNote.category] || StandardEditor;
+  const ActiveEditorComponent = EditorStrategyMap[note.category] || StandardEditor;
 
   return (
     <div className="flex-1 flex flex-col h-full bg-white dark:bg-gray-900 transition-colors duration-200 overflow-y-auto">
@@ -153,7 +147,7 @@ export default function Editor() {
           <div className="h-4 w-px bg-gray-200 dark:bg-gray-700"></div>
           
           <select
-            value={activeNote.category || 'General'}
+            value={note.category || 'General'}
             onChange={handleCategoryChange}
             className="bg-transparent border-none outline-none cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:ring-0 p-0 text-sm font-medium"
           >
@@ -164,23 +158,23 @@ export default function Editor() {
             ))}
           </select>
         </div>
-        <span>Last edited: {new Date(activeNote?.lastModified).toLocaleTimeString()}</span>
+        <span>Last edited: {new Date(note.lastModified).toLocaleTimeString()}</span>
       </div>
 
       {/* Universal Title Input */}
       <div className="px-6 pt-6">
         <input
           type="text"
-          value={activeNote.title}
+          value={note.title}
           onChange={handleTitleChange}
-          placeholder={activeNote.category === 'Password Manager' ? "Site name or App..." : "Untitled Note..."}
+          placeholder={note.category === 'Password Manager' ? "Site name or App..." : "Untitled Note..."}
           className="w-full text-4xl font-bold text-gray-800 dark:text-gray-100 placeholder-gray-300 dark:placeholder-gray-600 border-none outline-none focus:ring-0 bg-transparent transition-colors"
         />
       </div>
 
       {/* Dynamic Content Area */}
       <div className="flex-1 p-6 flex flex-col">
-        <ActiveEditorComponent note={activeNote} onUpdateNote={onUpdateNote} />
+        <ActiveEditorComponent note={note} onUpdateNote={onUpdateNote} />
       </div>
     </div>
   );
